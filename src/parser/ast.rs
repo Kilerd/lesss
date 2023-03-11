@@ -14,8 +14,8 @@ pub enum Item {
 
 #[derive(Debug)]
 pub struct CssBlock {
-    headers: Vec<CssBlockHeader>,
-    items: Vec<CssBlockItem>,
+    pub headers: Vec<CssBlockHeader>,
+    pub items: Vec<CssBlockItem>,
 }
 
 #[derive(Debug)]
@@ -103,7 +103,7 @@ impl LessParser {
     fn EOI(_input: Node) -> Result<()> {
         Ok(())
     }
-    fn less(input: Node) -> Result<LessRoot> {
+    pub(crate) fn less(input: Node) -> Result<LessRoot> {
         let items = match_nodes!(input.into_children();
             [item(items).., EOI(_)] => items.collect_vec(),
         );
