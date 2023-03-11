@@ -14,9 +14,10 @@ term_expr = { variable_name | single_value}
 single_value = {(!";" ~ ANY)+}
 
 
-css_block  = { css_block_header ~ NEWLINE*~ "{" ~NEWLINE*~  css_block_items ~ NEWLINE*~ "}" }
+css_block  = { css_block_headers ~ NEWLINE*~ "{" ~NEWLINE*~  css_block_items ~ NEWLINE*~ "}" }
 
-css_block_header = {(mixin_identifier | css_identifier )+}
+css_block_headers = {css_block_header+}
+css_block_header = {mixin_identifier | css_identifier}
 css_identifier = {("#" | ".")? ~ (ASCII_ALPHANUMERIC)+}
 mixin_identifier = {css_identifier ~ "("~ ")"}
 
