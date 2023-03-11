@@ -2,7 +2,7 @@ use itertools::Itertools;
 use pest_consume::{match_nodes, match_nodes_, Error};
 
 #[derive(Debug)]
-pub struct Less {
+pub struct LessRoot {
     pub items: Vec<Item>,
 }
 
@@ -34,14 +34,14 @@ pub enum CssBlockItem {
 
 #[derive(Debug)]
 pub struct CssItem {
-    name: String,
-    value: VariableValue,
+    pub name: String,
+    pub value: VariableValue,
 }
 
 #[derive(Debug)]
 pub struct VariableDel {
-    name: String,
-    value: VariableValue,
+    pub name: String,
+    pub value: VariableValue,
 }
 
 #[derive(Debug)]
@@ -103,11 +103,11 @@ impl LessParser {
     fn EOI(_input: Node) -> Result<()> {
         Ok(())
     }
-    fn less(input: Node) -> Result<Less> {
+    fn less(input: Node) -> Result<LessRoot> {
         let items = match_nodes!(input.into_children();
             [item(items).., EOI(_)] => items.collect_vec(),
         );
-        Ok(Less { items })
+        Ok(LessRoot { items })
     }
     fn item(input: Node) -> Result<Item> {
         Ok(match_nodes!(input.into_children();
@@ -203,7 +203,8 @@ impl LessParser {
 mod test {
     use crate::parser::ast::LessParser;
     use crate::parser::ast::Rule;
-    use pest_consume::Parser;
+    use pest_consume::{Parser, parser};
+    use indoc::indoc;
 
     macro_rules! parse_rule {
         ($rule_type: expr, $rule_fn: tt,   $content: expr) => {
@@ -219,11 +220,42 @@ mod test {
     fn should_pass_less() {
         parse_rule! {Rule::less, less,  ".a {}"};
         parse_rule! {Rule::less, less, ".a {color:red;}"};
+        parse_rule!(Rule::less, less, indoc!(r##"
+            #menu a {
+              color: #111;
+              .bordered();
+            }
+
+            .post a {
+              color: red;
+              .bordered();
+            }
+        "##));
     }
 
     #[test]
     fn should_pass_variable_del() {
-        parse_rule! {Rule::variable_del, variable_del, "@a: 30px;"};
-        parse_rule! {Rule::variable_del, variable_del, "@a: @b+20px;"};
+        parse_rule! {Rule::variable_del, variable_del, "@width: 10px;"};
+        parse_rule! {Rule::variable_del, variable_del, "@height: @width + 10px;"};
+    }
+    #[test]
+    fn should_pass_css_block() {
+        parse_rule! {Rule::css_block, css_block, indoc!(r##"
+            #header .logo {
+              width: 300px;
+            }
+        "##)};
+
+        parse_rule! {Rule::css_block, css_block, indoc!(r##"
+            #header {
+              color: black;
+              .navigation {
+                font-size: 12px;
+              }
+              .logo {
+                width: 300px;
+              }
+            }
+        "##)};
     }
 }
