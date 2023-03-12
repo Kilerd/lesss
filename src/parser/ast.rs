@@ -91,7 +91,9 @@ impl LessParser {
         Ok(input.as_str().to_owned())
     }
     fn mixin_identifier(input: Node) -> Result<String> {
-        Ok(input.as_str().to_owned())
+        Ok(match_nodes!(input.into_children();
+            [css_identifier(identifier)] => identifier,
+        ))
     }
     fn css_identifier(input: Node) -> Result<String> {
         Ok(input.as_str().to_owned())
@@ -173,8 +175,8 @@ impl LessParser {
     }
     fn css_block_header(input: Node) -> Result<CssBlockHeader> {
         Ok(match_nodes!(input.into_children();
-            [mixin_identifier(mixin)] => CssBlockHeader::CssIdentifier(mixin),
-            [css_identifier(identifier)] => CssBlockHeader::MixinIdentifier(identifier),
+            [mixin_identifier(mixin)] => CssBlockHeader::MixinIdentifier(mixin),
+            [css_identifier(identifier)] => CssBlockHeader::CssIdentifier(identifier),
         ))
     }
     fn css_block_item(input: Node) -> Result<CssBlockItem> {
@@ -218,9 +220,10 @@ mod test {
 
     #[test]
     fn should_pass_less() {
-        parse_rule! {Rule::less, less,  ".a {}"};
-        parse_rule! {Rule::less, less, ".a {color:red;}"};
-        parse_rule!(Rule::less, less, indoc!(r##"
+        parse_rule! {Rule::less, less,  ".a {}"}
+        parse_rule! {Rule::less, less, ".a {color:red;}"}
+
+        parse_rule! {Rule::less, less, indoc!(r##"
             #menu a {
               color: #111;
               .bordered();
@@ -230,21 +233,22 @@ mod test {
               color: red;
               .bordered();
             }
-        "##));
+        "##)}
     }
 
     #[test]
     fn should_pass_variable_del() {
-        parse_rule! {Rule::variable_del, variable_del, "@width: 10px;"};
-        parse_rule! {Rule::variable_del, variable_del, "@height: @width + 10px;"};
+        parse_rule! {Rule::variable_del, variable_del, "@width: 10px;"}
+        parse_rule! {Rule::variable_del, variable_del, "@height: @width + 10px;"}
     }
+
     #[test]
     fn should_pass_css_block() {
         parse_rule! {Rule::css_block, css_block, indoc!(r##"
             #header .logo {
               width: 300px;
             }
-        "##)};
+        "##)}
 
         parse_rule! {Rule::css_block, css_block, indoc!(r##"
             #header {
@@ -256,6 +260,6 @@ mod test {
                 width: 300px;
               }
             }
-        "##)};
+        "##)}
     }
 }

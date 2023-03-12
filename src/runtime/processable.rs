@@ -44,11 +44,11 @@ impl Processable for CssBlock {
         println!("processable : {:?}", &self);
         let mut css_scope = Scope::new_from_parent(scope);
 
-
         for item in self.items {
             item.process(css_scope.clone())?;
         }
-
+        let mut ref_mut = css_scope.borrow_mut();
+        ref_mut.headers.extend(self.headers);
         Ok(())
     }
 }

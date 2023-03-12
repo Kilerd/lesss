@@ -3,12 +3,13 @@ use std::collections::HashMap;
 use std::env::var;
 use std::fmt::{Debug, Formatter};
 use std::rc::Rc;
-use crate::parser::ast::{VariableDel, VariableValue};
+use crate::parser::ast::{CssBlockHeader, VariableDel, VariableValue};
 
 pub(crate) mod processable;
 
 
 pub struct Scope {
+    headers: Vec<CssBlockHeader>,
     parent: Option<Rc<RefCell<Scope>>>,
     children: Vec<Rc<RefCell<Scope>>>,
     variables: HashMap<String, VariableValue>,
@@ -19,6 +20,7 @@ pub struct Scope {
 impl Debug for Scope {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Scope")
+            .field("headers", &self.headers)
             .field("variables",&self.variables)
             .field("mixin",&self.mixin)
             .field("css",&self.css)
@@ -31,6 +33,7 @@ impl Scope {
     pub(crate) fn new() -> Self {
         Scope {
             parent: None,
+            headers: Vec::new(),
             children: vec![],
             variables: HashMap::new(),
             css: HashMap::new(),
