@@ -1,18 +1,17 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import logo from './logo.svg';
 import './App.css';
 import * as lesss from 'lesss';
 
 function App() {
-  console.log(lesss.greet());
-  
+useEffect(() => {
+console.log(lesss);
+}, [])
+  const [content, setContent] = useState("a {}")
   return (
     <div className="App">
-      <header className="App-header">
-        <textarea name="" id="">
-
-        </textarea>
-      </header>
+        <textarea name="" id="" value={content} onChange={e => setContent(e.target.value)}></textarea>
+        {lesss.parse(content)}
     </div>
   );
 }
