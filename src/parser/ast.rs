@@ -20,8 +20,12 @@ pub struct CssBlock {
 
 #[derive(Debug)]
 pub enum CssBlockHeader {
-    CssIdentifier(String),
+    CssIdentifier(CssIdentifier),
     MixinIdentifier(String),
+}
+#[derive(Debug)]
+pub struct CssIdentifier {
+    values: Vec<String>
 }
 
 #[derive(Debug)]
@@ -92,11 +96,19 @@ impl LessParser {
     }
     fn mixin_identifier(input: Node) -> Result<String> {
         Ok(match_nodes!(input.into_children();
-            [css_identifier(identifier)] => identifier,
+            [css_single_identifier(identifier)] => identifier,
         ))
     }
-    fn css_identifier(input: Node) -> Result<String> {
+    fn css_single_identifier(input: Node) -> Result<String> {
         Ok(input.as_str().to_owned())
+    }
+    fn css_identifier(input: Node) -> Result<CssIdentifier> {
+        let ids = match_nodes!(input.into_children();
+            [css_single_identifier(ids)..] => ids.collect_vec(),
+        );
+        Ok(CssIdentifier {
+            values: ids
+        })
     }
     fn css_variable_name(input: Node) -> Result<String> {
         Ok(input.as_str().to_owned())
@@ -260,6 +272,9 @@ mod test {
                 width: 300px;
               }
             }
+        "##)}
+        parse_rule! {Rule::css_block, css_block, indoc!(r##"
+            #header, a, p, .a() {}
         "##)}
     }
 }

@@ -1,31 +1,30 @@
 less           =  { SOI ~ items ~ EOI }
-items          =  _{ (item ~ NEWLINE*)* }
+items          = _{ (item ~ NEWLINE*)* }
 item           =  { variable_del | css_block }
 variable_del   =  { variable_name ~ ":" ~ variable_value ~ ";" }
 variable_name  = @{ "@" ~ (ASCII_ALPHANUMERIC)+ }
 variable_value =  { variable_expr }
-variable_expr = {(at_expr ~ at_expr_op ~ variable_expr) | at_expr }
-at_expr_op = {"*" | "/"}
-at_expr = { ( term_expr ~ term_expr_op ~ at_expr) | term_expr}
-term_expr_op = {"+" | "-"}
+variable_expr  =  { (at_expr ~ at_expr_op ~ variable_expr) | at_expr }
+at_expr_op     =  { "*" | "/" }
+at_expr        =  { (term_expr ~ term_expr_op ~ at_expr) | term_expr }
+term_expr_op   =  { "+" | "-" }
+term_expr      =  { variable_name | single_value }
 
-term_expr = { variable_name | single_value}
+css_block = { css_block_headers ~ NEWLINE* ~ "{" ~ NEWLINE* ~ css_block_items ~ NEWLINE* ~ "}" }
 
-single_value = {(!";" ~ ANY)+}
+css_block_headers = { css_block_header ~ ("," ~ css_block_header)* }
+css_block_header  = { mixin_identifier | css_identifier }
+css_identifier    = { css_single_identifier+ }
 
+mixin_identifier = { css_single_identifier ~ "(" ~ ")" }
 
-css_block  = { css_block_headers ~ NEWLINE*~ "{" ~NEWLINE*~  css_block_items ~ NEWLINE*~ "}" }
+css_block_items = _{ (css_block_item ~ NEWLINE*)* }
+css_block_item  =  { mixin | simple_css_item | variable_del | css_block }
+mixin           =  { mixin_identifier ~ ";" }
+simple_css_item =  { css_variable_name ~ ":" ~ variable_value ~ ";" }
 
-css_block_headers = {css_block_header+}
-css_block_header = {mixin_identifier | css_identifier}
-css_identifier = {("#" | ".")? ~ (ASCII_ALPHANUMERIC)+}
-mixin_identifier = {css_identifier ~ "("~ ")"}
-
-css_block_items = _{(css_block_item ~ NEWLINE*)*}
-css_block_item = {mixin | simple_css_item | variable_del | css_block}
-mixin = {mixin_identifier ~ ";"}
-simple_css_item = { css_variable_name ~ ":" ~ variable_value ~ ";"}
-
-css_variable_name = {(ASCII_ALPHANUMERIC | "-")+}
+css_single_identifier = @{ ("#" | ".")? ~ (ASCII_ALPHANUMERIC)+ }
+css_variable_name     =  { (ASCII_ALPHANUMERIC | "-")+ }
+single_value          =  { (!";" ~ ANY)+ }
 
 WHITESPACE = _{ " " }
