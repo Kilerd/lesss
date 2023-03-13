@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::rc::Rc;
+use itertools::Either;
 use crate::parser::ast::{AtExpr, CssBlock, CssBlockItem, CssItem, Item, LessRoot, TermExpr, VariableDel, VariableExpr};
 use crate::runtime::Scope;
 
@@ -62,7 +63,7 @@ impl Processable for CssBlockItem {
             CssBlockItem::VariableDel(variable_del) => variable_del.process(scope)?,
             CssBlockItem::Mixin(mixin) => {
                 let mut ref_mut = scope.borrow_mut();
-                ref_mut.mixin.push(mixin);
+                ref_mut.items.push(Either::Right(mixin));
             }
         }
         Ok(())
@@ -74,7 +75,7 @@ impl Processable for CssItem {
     fn process(self, scope: Rc<RefCell<Scope>>) -> Result<(), ()> {
         println!("processable : {:?}", &self);
         let mut ref_mut = scope.borrow_mut();
-        ref_mut.css.insert(self.name, self.value);
+        ref_mut.items.push(Either::Left(self));
         Ok(())
     }
 }
