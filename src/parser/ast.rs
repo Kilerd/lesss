@@ -18,14 +18,15 @@ pub struct CssBlock {
     pub items: Vec<CssBlockItem>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum CssBlockHeader {
     CssIdentifier(CssIdentifier),
     MixinIdentifier(String),
 }
-#[derive(Debug)]
+
+#[derive(Debug, Clone)]
 pub struct CssIdentifier {
-    values: Vec<String>
+    pub values: Vec<String>,
 }
 
 #[derive(Debug)]
@@ -48,12 +49,12 @@ pub struct VariableDel {
     pub value: VariableValue,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum VariableValue {
     Expr(VariableExpr),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ExprOperator {
     Mul,
     Div,
@@ -61,19 +62,19 @@ pub enum ExprOperator {
     Sub,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum VariableExpr {
     Operation(AtExpr, ExprOperator, Box<VariableExpr>),
     Single(AtExpr),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum AtExpr {
     Operation(TermExpr, ExprOperator, Box<AtExpr>),
     Single(TermExpr),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum TermExpr {
     VariableName(String),
     SingleValue(String),

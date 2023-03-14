@@ -1,6 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 use crate::parser::ast::LessParser;
+use crate::runtime::printable::ScopePrintable;
 use crate::runtime::Scope;
 use crate::runtime::processable::Processable;
 pub mod parser;
@@ -28,7 +29,11 @@ impl Less {
         let root = parser::parse(&self.content);
         let scope = Rc::new(RefCell::new(Scope::new()));
          root.process(scope.clone()).unwrap();
-        dbg!(scope);
+
+        let mut ref_mut = scope.borrow_mut();
+        let result = ref_mut.execute();
+
+        println!("{}", ref_mut.print(&[]));
     }
     fn print(&self) -> String {
         todo!()
@@ -45,17 +50,17 @@ mod test {
     #[test]
     fn test() {
         Less::new(indoc!(r##"
+        @color: blue;
         #header {
-          .a();
           color: black;
           .navigation {
             font-size: 12px;
+            color: @color;
           }
           .logo {
             width: 300px;
           }
         }
-
         "##))
             .process();
     }

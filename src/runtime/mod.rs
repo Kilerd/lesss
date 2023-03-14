@@ -1,4 +1,3 @@
-use std::borrow::BorrowMut;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::env::var;
@@ -9,6 +8,7 @@ use crate::parser::ast::{CssBlockHeader, CssItem, VariableDel, VariableValue};
 
 pub(crate) mod processable;
 pub(crate) mod executable;
+pub(crate) mod printable;
 
 type MixinIdentifier = String;
 
@@ -19,6 +19,10 @@ pub struct Scope {
     children: Vec<Rc<RefCell<Scope>>>,
     variables: HashMap<String, VariableValue>,
     items: Vec<Either<CssItem, MixinIdentifier>>,
+
+    calculated_variables: HashMap<String, String>,
+    calculated_css: HashMap<String, String>,
+
 }
 
 impl Debug for Scope {
@@ -40,13 +44,14 @@ impl Scope {
             children: vec![],
             variables: HashMap::new(),
             items: Vec::new(),
+            calculated_variables: Default::default(),
+            calculated_css: Default::default(),
         }
     }
     fn new_from_parent(parent: Rc<RefCell<Scope>>) -> Rc<RefCell<Scope>> {
         let mut child = Scope::new();
         child.parent = Some(parent.clone());
         let rc = Rc::new(RefCell::new(child));
-
         let mut parent_mut = parent.borrow_mut();
         parent_mut.children.push(rc.clone());
         rc
@@ -56,13 +61,15 @@ impl Scope {
         let VariableDel { name, value } = variable;
         self.variables.insert(name, value);
     }
-    fn get_variable<'a>(&self, key: &str) -> Option<&'a VariableValue> {
-        let self_variable = self.variables.get(key);
+    fn get_variable(&self, key: &str) -> Option<VariableValue> {
+        let self_variable = self.variables.get(key).map(|it|it.clone());
         if self_variable.is_some() {
             return self_variable;
         }
-        self.parent
+        let option = self.parent.as_ref();
+        option
             .map(|it| it.borrow())
             .and_then(|parent| parent.get_variable(key))
+
     }
 }
