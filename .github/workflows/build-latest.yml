@@ -20,6 +20,11 @@ jobs:
     needs: cargo-test
     steps:
       - uses: actions/checkout@v1
+      - name: Cache cargo build
+          uses: actions/cache@v1
+          with:
+            path: target
+            key: ${{ runner.os }}-cargo-build-target-lesss
       - uses: jetli/wasm-pack-action@v0.4.0
         with:
           version: 'latest'
@@ -53,7 +58,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: target
-          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-build-target-lesss
       - name: Run test
         run: cargo test
   formatter:
@@ -65,7 +70,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: target
-          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-build-target-lesss
       - name: Format
         run: cargo fmt --all -- --check
   clippy-check:
@@ -77,6 +82,6 @@ jobs:
         uses: actions/cache@v1
         with:
           path: target
-          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-build-target-lesss
       - name: Clippy
         run: cargo clippy --all-targets -- -D warnings
