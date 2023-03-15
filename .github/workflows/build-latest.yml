@@ -20,11 +20,6 @@ jobs:
     needs: cargo-test
     steps:
       - uses: actions/checkout@v1
-      - name: Cache cargo build
-        uses: actions/cache@v1
-        with:
-          path: target
-          key: ${{ runner.os }}-cargo-build-target-lesss
       - uses: jetli/wasm-pack-action@v0.4.0
         with:
           version: 'latest'
