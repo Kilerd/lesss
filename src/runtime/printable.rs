@@ -4,11 +4,11 @@ use crate::parser::ast::{CssBlockHeader, CssIdentifier};
 use crate::runtime::Scope;
 
 pub trait ScopePrintable {
-    fn print(&self, parent_headers: &[CssBlockHeader]) -> String;
+    fn print(&self, parent_headers: &[CssBlockHeader]) -> Vec<String>;
 }
 
 pub trait Printable {
-    fn print(&self) -> String;
+    fn print(&self) -> Vec<String>;
 }
 
 
@@ -35,32 +35,31 @@ fn merge_css_header(parent: &[CssBlockHeader], child: &[CssBlockHeader]) -> Vec<
 
 
 impl ScopePrintable for Scope {
-    fn print(&self, parent_headers: &[CssBlockHeader]) -> String {
-        let mut buffer = String::new();
+    fn print(&self, parent_headers: &[CssBlockHeader]) -> Vec<String> {
+        let mut buffer = Vec::new();
         let headers = merge_css_header(parent_headers, &self.headers);
         for header in &headers {
-            buffer.push_str(&Printable::print(header));
-            buffer.push('{');
+            buffer.extend(Printable::print(header));
+            buffer.push("{".to_string());
             for (css_key, css_value) in &self.calculated_css {
-                buffer.push_str(&format!("{}: {};", css_key, css_value));
+                buffer.push(format!("  {}: {};", css_key, css_value));
             }
-            buffer.push('}');
+            buffer.push("}".to_string());
         }
 
         for child in &self.children {
             let ref_mut = child.borrow_mut();
-            buffer.push_str(&ref_mut.print(&headers));
+            buffer.extend(ref_mut.print(&headers));
         }
-
 
         return buffer;
     }
 }
 
 impl Printable for CssBlockHeader {
-    fn print(&self) -> String {
+    fn print(&self) -> Vec<String> {
         match self {
-            CssBlockHeader::CssIdentifier(ident) => { ident.values.join(" ") }
+            CssBlockHeader::CssIdentifier(ident) => { vec![ident.values.join(" ")] }
             CssBlockHeader::MixinIdentifier(_) => { todo!() }
         }
     }

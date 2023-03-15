@@ -30,7 +30,7 @@ impl Less {
 
         execute_root(scope.clone()).unwrap();
         let ref_mut = scope.borrow_mut();
-        ref_mut.print(&[])
+        ref_mut.print(&[]).join("\n")
     }
 }
 
