@@ -13,27 +13,24 @@ pub fn parse(content: &str) -> String {
     content.to_owned()
 }
 
-struct Less {
+pub struct Less {
     content: String,
 }
 
 impl Less {
-    fn new(content: &str) -> Self {
+    pub fn new(content: &str) -> Self {
         Less {
             content: content.to_owned()
         }
     }
-    fn process(self) {
+    pub fn process(self) -> String {
         let root = parser::parse(&self.content);
         let scope = Rc::new(RefCell::new(Scope::new()));
         root.process(scope.clone()).unwrap();
 
         execute_root(scope.clone()).unwrap();
         let ref_mut = scope.borrow_mut();
-        println!("{}", ref_mut.print(&[]));
-    }
-    fn print(&self) -> String {
-        todo!()
+        ref_mut.print(&[])
     }
 }
 
