@@ -1,6 +1,7 @@
 mod utils;
 
 use wasm_bindgen::prelude::*;
+use lesss::Less;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -20,5 +21,9 @@ pub fn greet() {
 
 #[wasm_bindgen]
 pub fn parse(content: &str) -> String {
-    lesss::parse(content)
+    match Less::new(content).process() {
+        Ok(parsed) => { parsed }
+        Err(e) => { e }
+    }
 }
+// todo: add parse ast
