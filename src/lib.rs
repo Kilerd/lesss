@@ -23,14 +23,14 @@ impl Less {
             content: content.to_owned()
         }
     }
-    pub fn process(self) -> String {
-        let root = parser::parse(&self.content);
+    pub fn process(self) -> Result<String, String> {
+        let root = parser::parse(&self.content)?;
         let scope = Rc::new(RefCell::new(Scope::new()));
-        root.process(scope.clone()).unwrap();
+        root.process(scope.clone()).map_err(|e| format!("cannot process"))?;
 
-        execute_root(scope.clone()).unwrap();
+        execute_root(scope.clone()).map_err(|e| format!("cannot execute"))?;
         let ref_mut = scope.borrow_mut();
-        ref_mut.print(&[]).join("\n")
+        Ok(ref_mut.print(&[]).join("\n"))
     }
 }
 
@@ -42,7 +42,7 @@ mod test {
 
     #[test]
     fn test() {
-        Less::new(indoc!(r##"
+        let result1 = Less::new(indoc!(r##"
         @color: blue;
         #header {
           color: black;
@@ -56,5 +56,11 @@ mod test {
         }
         "##))
             .process();
+        dbg!(result1);
+        let result = Less::new(indoc!(r##"
+        a{} b
+        "##))
+            .process();
+        dbg!(result);
     }
 }

@@ -35,3 +35,6 @@ h1 {
   font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
   padding: 5px;
 }
+.right code {
+  white-space: pre;
+}
