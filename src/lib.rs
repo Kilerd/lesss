@@ -1,9 +1,10 @@
 use std::cell::RefCell;
 use std::rc::Rc;
-use crate::parser::ast::LessParser;
+use crate::runtime::executable::execute_root;
 use crate::runtime::printable::ScopePrintable;
 use crate::runtime::Scope;
 use crate::runtime::processable::Processable;
+
 pub mod parser;
 pub mod runtime;
 pub mod processor;
@@ -22,17 +23,13 @@ impl Less {
             content: content.to_owned()
         }
     }
-    fn register(mut self) -> Self {
-        todo!()
-    }
-    fn process(mut self) {
+    fn process(self) {
         let root = parser::parse(&self.content);
         let scope = Rc::new(RefCell::new(Scope::new()));
-         root.process(scope.clone()).unwrap();
+        root.process(scope.clone()).unwrap();
 
-        let mut ref_mut = scope.borrow_mut();
-        let result = ref_mut.execute();
-
+        execute_root(scope.clone()).unwrap();
+        let ref_mut = scope.borrow_mut();
         println!("{}", ref_mut.print(&[]));
     }
     fn print(&self) -> String {
@@ -45,7 +42,6 @@ impl Less {
 mod test {
     use indoc::indoc;
     use crate::Less;
-    use pest_consume::{Parser, parser};
 
     #[test]
     fn test() {

@@ -1,8 +1,7 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::env::var;
 use std::fmt::{Debug, Formatter};
-use std::rc::Rc;
+use std::rc::{Rc};
 use itertools::Either;
 use crate::parser::ast::{CssBlockHeader, CssItem, VariableDel, VariableValue};
 
@@ -20,7 +19,6 @@ pub struct Scope {
     variables: HashMap<String, VariableValue>,
     items: Vec<Either<CssItem, MixinIdentifier>>,
 
-    calculated_variables: HashMap<String, String>,
     calculated_css: HashMap<String, String>,
 
 }
@@ -44,13 +42,12 @@ impl Scope {
             children: vec![],
             variables: HashMap::new(),
             items: Vec::new(),
-            calculated_variables: Default::default(),
             calculated_css: Default::default(),
         }
     }
     fn new_from_parent(parent: Rc<RefCell<Scope>>) -> Rc<RefCell<Scope>> {
         let mut child = Scope::new();
-        child.parent = Some(parent.clone());
+        child.parent = Some(Rc::clone(&parent));
         let rc = Rc::new(RefCell::new(child));
         let mut parent_mut = parent.borrow_mut();
         parent_mut.children.push(rc.clone());

@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::rc::Rc;
 use itertools::Either;
 use crate::parser::ast::{AtExpr, ExprOperator, TermExpr, VariableExpr, VariableValue};
@@ -10,27 +11,35 @@ trait Executable {
 }
 
 
-impl Scope {
-    pub(crate) fn execute(&mut self) -> Result<(), ()> {
-        for item in &self.items {
-            match item {
-                Either::Left(css) =>{
-                    let string = css.value.execute(self)?;
-                            self.calculated_css.insert(css.name.clone(), string);
 
-                },
-                Either::Right(mixin) => {
-                    todo!("mixin is not support now")
-                }
+pub fn execute_root(scope: Rc<RefCell<Scope>>) -> Result<(), ()> {
+
+    let ref_scope = scope.borrow();
+    let mut csses = HashMap::new();
+    for item in &ref_scope.items {
+        match item {
+            Either::Left(css) =>{
+                let string = css.value.execute(&ref_scope)?;
+                csses.insert(css.name.clone(), string);
+
+            },
+            Either::Right(mixin) => {
+                todo!("mixin is not support now")
             }
         }
-        for child in &self.children {
-            let mut ref_child = child.borrow_mut();
-            ref_child.execute()?
-
-        }
-        Ok(())
     }
+    drop(ref_scope);
+
+    let mut mut_scope = scope.borrow_mut();
+    mut_scope.calculated_css = csses;
+    drop(mut_scope);
+
+
+    let ref_scope = scope.borrow();
+    for child in &ref_scope.children {
+        execute_root(child.clone())?;
+    }
+    Ok(())
 }
 
 impl Executable for VariableValue {

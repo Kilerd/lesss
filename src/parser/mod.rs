@@ -1,6 +1,6 @@
 
 use crate::parser::ast::{LessParser, LessRoot, Rule};
-use pest_consume::{Parser, parser};
+use pest_consume::{Parser};
 pub mod ast;
 
 pub fn parse(content: &str) -> LessRoot {

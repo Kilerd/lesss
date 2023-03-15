@@ -1,5 +1,5 @@
 use itertools::Itertools;
-use pest_consume::{match_nodes, match_nodes_, Error};
+use pest_consume::{match_nodes, Error};
 
 #[derive(Debug)]
 pub struct LessRoot {
@@ -218,7 +218,7 @@ impl LessParser {
 mod test {
     use crate::parser::ast::LessParser;
     use crate::parser::ast::Rule;
-    use pest_consume::{Parser, parser};
+    use pest_consume::{Parser};
     use indoc::indoc;
 
     macro_rules! parse_rule {

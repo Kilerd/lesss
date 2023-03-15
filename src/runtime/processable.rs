@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 use itertools::Either;
-use crate::parser::ast::{AtExpr, CssBlock, CssBlockItem, CssItem, Item, LessRoot, TermExpr, VariableDel, VariableExpr};
+use crate::parser::ast::{ CssBlock, CssBlockItem, CssItem, Item, LessRoot, VariableDel};
 use crate::runtime::Scope;
 
 pub trait Processable {
@@ -43,7 +43,7 @@ impl Processable for VariableDel {
 impl Processable for CssBlock {
     fn process(self, scope: Rc<RefCell<Scope>>) -> Result<(), ()> {
         println!("processable : {:?}", &self);
-        let mut css_scope = Scope::new_from_parent(scope);
+        let css_scope = Scope::new_from_parent(scope);
 
         for item in self.items {
             item.process(css_scope.clone())?;
