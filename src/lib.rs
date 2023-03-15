@@ -56,11 +56,12 @@ mod test {
         }
         "##))
             .process();
-        dbg!(result1);
-        let result = Less::new(indoc!(r##"
-        a{} b
-        "##))
-            .process();
-        dbg!(result);
+        assert!(result1.is_ok());
+        let result = Less::new("a{}").process();
+        assert!(result.is_ok());
+        assert_eq!(indoc!(r##"
+        p, a {
+        }"##), Less::new("p, a{}").process().unwrap())
+
     }
 }

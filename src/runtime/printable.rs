@@ -8,7 +8,8 @@ pub trait ScopePrintable {
 }
 
 pub trait Printable {
-    fn print(&self) -> Vec<String>;
+    type Output;
+    fn print(&self) -> Self::Output;
 }
 
 
@@ -38,14 +39,14 @@ impl ScopePrintable for Scope {
     fn print(&self, parent_headers: &[CssBlockHeader]) -> Vec<String> {
         let mut buffer = Vec::new();
         let headers = merge_css_header(parent_headers, &self.headers);
-        for header in &headers {
-            buffer.extend(Printable::print(header));
-            buffer.push("{".to_string());
+        if !headers.is_empty() {
+            buffer.push(format!("{} {{", Printable::print(&headers)));
             for (css_key, css_value) in &self.calculated_css {
                 buffer.push(format!("  {}: {};", css_key, css_value));
             }
             buffer.push("}".to_string());
         }
+
 
         for child in &self.children {
             let ref_mut = child.borrow_mut();
@@ -57,10 +58,18 @@ impl ScopePrintable for Scope {
 }
 
 impl Printable for CssBlockHeader {
-    fn print(&self) -> Vec<String> {
+    type Output = String;
+    fn print(&self) -> Self::Output {
         match self {
-            CssBlockHeader::CssIdentifier(ident) => { vec![ident.values.join(" ")] }
+            CssBlockHeader::CssIdentifier(ident) => { ident.values.join(" ") }
             CssBlockHeader::MixinIdentifier(_) => { todo!() }
         }
+    }
+}
+
+impl Printable for Vec<CssBlockHeader> {
+    type Output = String;
+    fn print(&self) -> Self::Output {
+        self.iter().map(|header| header.print()).join(", ")
     }
 }
