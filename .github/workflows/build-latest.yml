@@ -1,4 +1,4 @@
-name: Develop Build
+name: Test and Build Website
 
 on:
   push:
