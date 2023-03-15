@@ -6,7 +6,17 @@ function App() {
   useEffect(() => {
     console.log(lesss);
   }, [])
-  const [content, setContent] = useState("a {}")
+  const [content, setContent] = useState(`@color: blue;
+#header {
+  color: black;
+  .navigation {
+    font-size: 12px;
+    color: @color;
+  }
+  .logo {
+    width: 300px;
+  }
+}`)
   const [parsed, setParsed] = useState("")
 
   useEffect(() =>{
