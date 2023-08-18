@@ -1,35 +1,35 @@
 use itertools::Itertools;
 use pest_consume::{match_nodes, Error};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct LessRoot {
     pub items: Vec<Item>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Item {
     VariableDel(VariableDel),
     CssBlock(CssBlock),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct CssBlock {
     pub headers: Vec<CssBlockHeader>,
     pub items: Vec<CssBlockItem>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum CssBlockHeader {
     CssIdentifier(CssIdentifier),
     MixinIdentifier(String),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct CssIdentifier {
     pub values: Vec<String>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum CssBlockItem {
     VariableDel(VariableDel),
     CssBlock(CssBlock),
@@ -37,24 +37,24 @@ pub enum CssBlockItem {
     CssItem(CssItem),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct CssItem {
     pub name: String,
     pub value: VariableValue,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct VariableDel {
     pub name: String,
     pub value: VariableValue,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum VariableValue {
     Expr(VariableExpr),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum ExprOperator {
     Mul,
     Div,
@@ -62,19 +62,19 @@ pub enum ExprOperator {
     Sub,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum VariableExpr {
     Operation(AtExpr, ExprOperator, Box<VariableExpr>),
     Single(AtExpr),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum AtExpr {
     Operation(TermExpr, ExprOperator, Box<AtExpr>),
     Single(TermExpr),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum TermExpr {
     VariableName(String),
     SingleValue(String),
