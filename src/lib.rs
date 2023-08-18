@@ -37,9 +37,15 @@ impl Less {
 
 #[cfg(test)]
 mod test {
+    use std::cell::RefCell;
+    use std::rc::Rc;
     use indoc::indoc;
     use itertools::Itertools;
     use crate::Less;
+    use crate::runtime::executable::execute_root;
+    use crate::runtime::printable::ScopePrintable;
+    use crate::runtime::processable::Processable;
+    use crate::runtime::Scope;
 
     #[test]
     fn integration_test() {
@@ -49,16 +55,19 @@ mod test {
                 it.path().file_stem().and_then(|oss| oss.to_str()).map(|s| s.to_owned())
             }).unique().collect_vec();
         for testcase in testcases {
+            println!("testing {}", &testcase);
             let less_source = std::fs::read_to_string(format!("examples/{}.less", testcase)).unwrap();
             let css_source = std::fs::read_to_string(format!("examples/{}.css", testcase)).unwrap();
             let less = Less::new(less_source.as_str());
             let result = less.process();
             assert!(result.is_ok());
+            let css = Less::new(css_source.as_str());
+            let parsed_css = css.process().unwrap();
+
             assert_eq!(
-                crate::parser::parse(result.ok().unwrap().as_str()).unwrap(),
-                crate::parser::parse(css_source.as_str()).unwrap()
+                result.unwrap(),
+                parsed_css,
             );
         }
     }
-
 }

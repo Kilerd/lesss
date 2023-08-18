@@ -1,7 +1,8 @@
-use std::cell::RefCell;
+use std::cell::{Ref, RefCell};
 use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
 use std::rc::{Rc};
+use indexmap::IndexMap;
 use itertools::Either;
 use crate::parser::ast::{CssBlockHeader, CssItem, VariableDel, VariableValue};
 
@@ -16,10 +17,10 @@ pub struct Scope {
     headers: Vec<CssBlockHeader>,
     parent: Option<Rc<RefCell<Scope>>>,
     children: Vec<Rc<RefCell<Scope>>>,
-    variables: HashMap<String, VariableValue>,
+    variables: IndexMap<String, VariableValue>,
     items: Vec<Either<CssItem, MixinIdentifier>>,
 
-    calculated_css: HashMap<String, String>,
+    calculated_css: IndexMap<String, String>,
 
 }
 
@@ -40,7 +41,7 @@ impl Scope {
             parent: None,
             headers: Vec::new(),
             children: vec![],
-            variables: HashMap::new(),
+            variables: IndexMap::new(),
             items: Vec::new(),
             calculated_css: Default::default(),
         }
@@ -59,7 +60,7 @@ impl Scope {
         self.variables.insert(name, value);
     }
     fn get_variable(&self, key: &str) -> Option<VariableValue> {
-        let self_variable = self.variables.get(key).map(|it|it.clone());
+        let self_variable = self.variables.get(key).map(|it| it.clone());
         if self_variable.is_some() {
             return self_variable;
         }
@@ -67,6 +68,25 @@ impl Scope {
         option
             .map(|it| it.borrow())
             .and_then(|parent| parent.get_variable(key))
-
+    }
+    fn find_mixin(&self, name: &MixinIdentifier) -> Option<Rc<RefCell<Scope>>> {
+        for x in &self.children {
+            let x1 = x.borrow();
+            if x1.match_mixin(name) {
+                drop(x1);
+                return Some(x.clone());
+            }
+        }
+        if let Some(parent) = &self.parent {
+            parent.borrow().find_mixin(name)
+        } else {
+            None
+        }
+    }
+    fn match_mixin(&self, name: &MixinIdentifier) -> bool {
+        self.headers.iter().any(|header| match header {
+            CssBlockHeader::CssIdentifier(css_ident) => { css_ident.values.iter().any(|ident| ident.eq(name)) }
+            CssBlockHeader::MixinIdentifier(my) => { my.eq(name) }
+        })
     }
 }

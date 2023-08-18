@@ -1,30 +1,34 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+use indexmap::IndexMap;
 use itertools::Either;
-use crate::parser::ast::{AtExpr, ExprOperator, TermExpr, VariableExpr, VariableValue};
+use crate::parser::ast::{AtExpr, CssItem, ExprOperator, TermExpr, VariableExpr, VariableValue};
+use crate::runtime::MixinIdentifier;
 use crate::Scope;
 
 trait Executable {
     type Output;
-    fn execute(&self, scope: &Scope) -> Result<Self::Output, ()>;
+    fn execute(&self, scope: Rc<RefCell<Scope>>) -> Result<Self::Output, ()>;
 }
 
 
-
 pub fn execute_root(scope: Rc<RefCell<Scope>>) -> Result<(), ()> {
-
+    let mut csses = IndexMap::new();
     let ref_scope = scope.borrow();
-    let mut csses = HashMap::new();
     for item in &ref_scope.items {
         match item {
-            Either::Left(css) =>{
-                let string = css.value.execute(&ref_scope)?;
+            Either::Left(css) => {
+                let string = css.value.execute(scope.clone())?;
                 csses.insert(css.name.clone(), string);
-
-            },
+            }
             Either::Right(mixin) => {
-                todo!("mixin is not support now")
+                if let Some(mixin_scope) = ref_scope.find_mixin(mixin) {
+                    execute_root(mixin_scope.clone()).unwrap();
+                    let mixin_scope_bw = mixin_scope.borrow();
+
+                    csses.extend(mixin_scope_bw.calculated_css.clone());
+                }
             }
         }
     }
@@ -42,9 +46,10 @@ pub fn execute_root(scope: Rc<RefCell<Scope>>) -> Result<(), ()> {
     Ok(())
 }
 
+
 impl Executable for VariableValue {
     type Output = String;
-    fn execute(&self, scope: &Scope) -> Result<Self::Output, ()> {
+    fn execute(&self, scope: Rc<RefCell<Scope>>) -> Result<Self::Output, ()> {
         match self {
             VariableValue::Expr(expr) => {
                 expr.execute(scope)
@@ -55,7 +60,7 @@ impl Executable for VariableValue {
 
 impl Executable for VariableExpr {
     type Output = String;
-    fn execute(&self, scope: &Scope) -> Result<Self::Output, ()> {
+    fn execute(&self, scope: Rc<RefCell<Scope>>) -> Result<Self::Output, ()> {
         match self {
             VariableExpr::Operation(lhs, op, rhs) => {
                 let lhs_result = lhs.execute(scope.clone());
@@ -68,8 +73,8 @@ impl Executable for VariableExpr {
                     ExprOperator::Sub => {
                         // todo implement operator
                         lhs_result
-                    },
-                    _=> unreachable!()
+                    }
+                    _ => unreachable!()
                 }
             }
             VariableExpr::Single(single) => {
@@ -81,7 +86,7 @@ impl Executable for VariableExpr {
 
 impl Executable for AtExpr {
     type Output = String;
-    fn execute(&self, scope: &Scope) -> Result<Self::Output, ()> {
+    fn execute(&self, scope: Rc<RefCell<Scope>>) -> Result<Self::Output, ()> {
         match self {
             AtExpr::Operation(lhs, op, rhs) => {
                 let lhs_result = lhs.execute(scope.clone());
@@ -94,8 +99,8 @@ impl Executable for AtExpr {
                     ExprOperator::Sub => {
                         // todo implement operator
                         lhs_result
-                    },
-                    _=> unreachable!()
+                    }
+                    _ => unreachable!()
                 }
             }
             AtExpr::Single(single) => {
@@ -107,11 +112,13 @@ impl Executable for AtExpr {
 
 impl Executable for TermExpr {
     type Output = String;
-    fn execute(&self, scope: &Scope) -> Result<Self::Output, ()> {
+    fn execute(&self, scope: Rc<RefCell<Scope>>) -> Result<Self::Output, ()> {
         match self {
             TermExpr::VariableName(variable_name) => {
-
-                scope.get_variable(variable_name).expect("cannot get variable").execute(scope)
+                {
+                    let x = scope.borrow();
+                    x.get_variable(variable_name).expect("cannot get variable")
+                }.execute(scope.clone())
             }
             TermExpr::SingleValue(simple_value) => { Ok(simple_value.to_owned()) }
         }.to_owned()
